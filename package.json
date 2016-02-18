@@ -15,14 +15,12 @@
     "serve": "./node_modules/.bin/babel-node src/app.js --config-dir=\"`pwd`/config/\""
   },
   "dependencies": {
-    "crypto": "0.0.3",
     "debug": "^2.2.0",
     "dotenv": "^2.0.0",
     "escape-html": "^1.0.3",
     "jsonwebtoken": "^5.7.0",
     "lodash": "^4.4.0",
     "minimist": "^1.2.0",
-    "mysql": "^2.10.2",
     "redis": "^2.4.2",
     "socket.io": "^1.4.5"
   },
