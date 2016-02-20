@@ -1,11 +1,11 @@
 {
-    "spam": {
-        "rateLimit": {
+    "filters": {
+        "RateLimitFilter": {
             "decay": 5,
             "maxMessageBurst": 3,
             "cacheKeyPrefix": "user-messages"
         },
-        "words": [
+        "SpamFilter": [
             "http://",
             "https://",
             "www.",

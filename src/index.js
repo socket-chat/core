@@ -1,7 +1,9 @@
+import * as _ from 'lodash'
 import SocketServer from 'socket.io'
 
 import { ChatServer } from './chat/ChatServer'
 import * as middleware from './chat/middleware'
+import { ChatCommandHandler } from './chat/middleware/commands'
 
 const debug = require('debug')('server')
 
@@ -20,35 +22,58 @@ let createSocketIO = () => {
 }
 
 /**
- * Runs bootstrapping code on a {@link ChatServer} instance.
- * @param  {ChatServer} server {@link ChatServer} instance to bootstrap
- * @return {ChatServer} original instance after bootstrap methods have been applied
+ * Helper function for adding built in chat commands.
+ * @param  {ChatServer} server
  */
-let bootstrapChatServer = (server) => {
-  const CONFIG_DIR = __dirname + '/../config/'
-  let configPath = (path) => CONFIG_DIR + path
+const createCommandHandler = (server) => {
+  let commandHandler = new ChatCommandHandler()
 
-  // load config
-  server.loadConfig('server', configPath('server.json'))
+  _.each(middleware.commands.defaults, (command, slashAction) => {
+    commandHandler.registerCommand(slashAction, command)
+  })
 
-  // load middlewares
-  middleware.attachMiddleware(server)
+  server.addMessageMiddleware(commandHandler)
+}
 
-  return server
+/**
+ * Helper function for adding default message middleware.
+ * @param  {ChatServer} server
+ */
+const createMessageFilters = (server) => {
+  const filtersConfig = server.config('server', 'filters')
+
+  _.map(middleware.filters, (middleware, name) => new middleware(filtersConfig[name] || {}))
+    .forEach(filter => server.addMessageMiddleware(filter))
 }
 
 /**
  * Creates a new ChatServer instance
  * @return {ChatServer}
  */
-let createChatServer = () => {
+export const createChatServer = (opts = {
+  commandHandlerFactory: createCommandHandler,
+  messageFiltersFactory: createMessageFilters
+}) => {
   let sio = createSocketIO()
   let server = new ChatServer(sio)
 
-  bootstrapChatServer(server)
+  server.loadConfig('server', __dirname + '/../config/server.json')
+
+  if (opts.commandHandlerFactory) {
+    opts.commandHandlerFactory(server)
+  }
+
+  if (opts.messageFiltersFactory) {
+    opts.messageFiltersFactory(server)
+  }
 
   return server
 }
 
-createChatServer(args)
-  .listen(8888)
+if (process.argv[1] === __filename) {
+  createChatServer().listen(8082)
+}
+
+export default {
+  createChatServer
+}
