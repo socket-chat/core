@@ -34,9 +34,7 @@ const afterAuthenticated = (socket) => {
  */
 const createSocketIO = () => {
   const sio = new SocketServer(8080)
-  const socketAuthenticator = new SocketAuthenticator({
-    beforeAuthSuccess: (socket) => banService.check(socket)
-  })
+  const socketAuthenticator = new SocketAuthenticator()
 
   sio.on('connection', (socket) => {
     debug('new conn: ' + socket.id)
