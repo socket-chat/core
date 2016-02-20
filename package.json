@@ -2,7 +2,7 @@
   "name": "socket-chat",
   "description": "plugin-centric chat server",
   "license": "MIT",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "main": "./lib/index.js",
   "repository": {
     "type": "git",
