@@ -10,6 +10,19 @@ class User {
     return this._props.email_hash
   }
 
+  get isBanned() {
+    return this._props.role === 'Banned'
+  }
+
+  get profile() {
+    return {
+      uid: this.uid,
+      username: this.username,
+      gravatar: this.emailHash,
+      rank: this.role,
+    }
+  }
+
   get role() {
     return this._props.role
   }

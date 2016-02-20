@@ -1,21 +1,53 @@
 import * as _ from 'lodash'
 import SocketServer from 'socket.io'
 
+import { SocketAuthenticator } from './chat/auth'
 import { ChatServer } from './chat/ChatServer'
 import * as middleware from './chat/middleware'
 import { ChatCommandHandler } from './chat/middleware/commands'
 
 const debug = require('debug')('server')
 
+const afterAuthenticated = (socket) => {
+  const user = socket.auth.user
+
+  debug(user.username, 'connected')
+
+  socket.emit('chat.room.joined', {
+    roomId: 'lobby',
+    users: [ user.profile ]
+  })
+
+  socket.emit('chat.user.joined', {
+    user: user.profile,
+    roomId: 'lobby'
+  })
+
+  socket.on('disconnect', () => {
+    debug(user.username + ' disconnected')
+  })
+}
+
 /**
  * Creates a new socket.io/Server instance
  * @return {socket.io/Server} socket.io/Server instance
  */
-let createSocketIO = () => {
+const createSocketIO = () => {
   const sio = new SocketServer(8080)
+  const socketAuthenticator = new SocketAuthenticator({
+    beforeAuthSuccess: (socket) => banService.check(socket)
+  })
 
   sio.on('connection', (socket) => {
     debug('new conn: ' + socket.id)
+    socket.connectedAt = Date.now()
+
+    socketAuthenticator.attempt(socket)
+      .then(afterAuthenticated)
+      .catch((err) => {
+        console.log(err)
+        socket.disconnect()
+      })
   })
 
   return sio
