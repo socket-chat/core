@@ -3,7 +3,7 @@
   "description": "plugin-centric chat server",
   "license": "MIT",
   "version": "0.0.2",
-  "main": "./lib/app.js",
+  "main": "./lib/index.js",
   "repository": {
     "type": "git",
     "url": "git://github.com/kylestev/socket-chat.git"
@@ -12,15 +12,13 @@
     "build": "./node_modules/.bin/babel src -d lib",
     "lint": "./node_modules/.bin/eslint ./src",
     "prepublish": "npm run build",
-    "serve": "./node_modules/.bin/babel-node src/app.js --config-dir=\"`pwd`/config/\""
+    "start": "./node_modules/.bin/babel-node src/index.js"
   },
   "dependencies": {
     "debug": "^2.2.0",
-    "dotenv": "^2.0.0",
     "escape-html": "^1.0.3",
     "jsonwebtoken": "^5.7.0",
     "lodash": "^4.4.0",
-    "minimist": "^1.2.0",
     "redis": "^2.4.2",
     "socket.io": "^1.4.5"
   },
