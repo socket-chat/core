@@ -63,7 +63,10 @@ class SocketAuthenticator {
       socket.auth = this._createDefaultAuthState()
 
       socket.patchAuthState = (update) => {
-        socket.auth = _.merge({}, socket.auth, update)
+        socket.auth = {
+          ...socket.auth,
+          ...update
+        }
       }
 
       socket.emit('auth.require')
