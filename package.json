@@ -6,7 +6,7 @@
   "main": "./lib/index.js",
   "repository": {
     "type": "git",
-    "url": "git://github.com/kylestev/socket-chat.git"
+    "url": "git://github.com/socket-chat/core.git"
   },
   "scripts": {
     "build": "./node_modules/.bin/babel src -d lib",
