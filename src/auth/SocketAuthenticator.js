@@ -2,7 +2,7 @@ import * as _ from 'lodash'
 
 import { JWTAuthProvider } from './JWTAuthProvider'
 
-const debug = require('debug')('auth')
+const debug = require('debug')('sc:auth')
 
 const defaultAuthProvider = () => {
   return new JWTAuthProvider()

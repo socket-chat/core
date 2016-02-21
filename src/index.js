@@ -4,7 +4,7 @@ import SocketServer from 'socket.io'
 import { ChatServer } from './ChatServer'
 import StateStore from './store'
 
-const debug = require('debug')('server')
+const debug = require('debug')('sc:server')
 
 /**
  * Creates a new socket.io/Server instance

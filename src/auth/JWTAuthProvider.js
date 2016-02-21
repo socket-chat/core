@@ -1,7 +1,7 @@
 import JWT from 'jsonwebtoken'
 import { User } from '../entity/User'
 
-const debug = require('debug')('auth-jwt')
+const debug = require('debug')('sc:auth:jwt')
 
 class JWTAuthProvider {
   constructor() {
