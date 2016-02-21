@@ -34,14 +34,8 @@ const createSocketIO = () => {
  * Creates a new ChatServer instance
  * @return {ChatServer}
  */
-const createChatServer = ({
-  port = 8082
-} = {}) => {
-  const server = new ChatServer(StateStore, createSocketIO())
-
-  server.boot(port)
-
-  return server
+const createChatServer = () => {
+  return new ChatServer(StateStore, createSocketIO())
 }
 
 export default createChatServer
