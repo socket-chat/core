@@ -1,7 +1,7 @@
 import * as _ from 'lodash'
 import SocketServer from 'socket.io'
 
-import { ChatServer } from './chat/ChatServer'
+import { ChatServer } from './ChatServer'
 import StateStore from './store'
 
 const debug = require('debug')('server')

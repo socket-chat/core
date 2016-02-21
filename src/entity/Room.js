@@ -1,4 +1,3 @@
-import assert from 'assert'
 import Immutable from 'immutable'
 
 export const RoomTypes = {
