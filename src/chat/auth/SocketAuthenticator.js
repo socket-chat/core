@@ -73,15 +73,52 @@ class SocketAuthenticator {
       socket.on('auth.attempt', (data) => {
         this._attemptAuthentication(socket, data)
           .then(() => {
-            resolve(socket)
+            resolve(socket, socket.auth.user)
           })
           .catch((err) => {
             debug('error during authentication: ' + err)
-            socket.emit('auth.failure')
             reject(err)
           })
       })
     })
+  }
+
+  authorize(opts = { timeout: 10000 }) {
+    return (socket) => {
+      const server = socket.server
+
+      const failAuth = () => {
+        socket.emit('auth.failure')
+        socket.disconnect('unauthorized')
+      }
+
+      debug('new conn: ' + socket.id)
+      socket.connectedAt = Date.now()
+
+      const Namespace = Object.getPrototypeOf(server.sockets).constructor;
+      if (! Namespace.events.includes('authenticated')) {
+        Namespace.events.push('authenticated');
+      }
+
+      if (opts.timeout > 0) {
+        setTimeout(() => {
+          if (! socket.auth || ! socket.auth.valid) {
+            failAuth()
+          }
+        }, opts.timeout)
+      }
+
+      this.attempt(socket)
+        .then(() => {
+          const namespace = (server.nsps && socket.nsp && server.nsps[socket.nsp.name]) || server.sockets
+          namespace.emit('authenticated', socket, socket.auth.user)
+        })
+        .catch((err) => {
+          debug(err)
+          failAuth()
+        })
+
+    }
   }
 }
 

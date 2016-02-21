@@ -1,9 +1,12 @@
+import Immutable from 'immutable'
+
 class User {
   constructor(uid, username, props = {}) {
     this._uid = uid
     this._username = username
-    // this._socket = socket
     this._props = props
+    this.roomList = new Immutable.Set()
+    this.socket = null
   }
 
   get emailHash() {
@@ -27,16 +30,16 @@ class User {
     return this._props.role
   }
 
-  // get socket() {
-  //   return this._socket
-  // }
-
   get uid() {
     return this._uid
   }
 
   get username() {
     return this._username
+  }
+
+  inRoom(roomName) {
+    return this.roomList.has(roomName)
   }
 }
 

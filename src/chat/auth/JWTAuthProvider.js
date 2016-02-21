@@ -1,5 +1,5 @@
 import JWT from 'jsonwebtoken'
-import { User } from '../User'
+import { User } from '../entity/User'
 
 const debug = require('debug')('auth-jwt')
 
