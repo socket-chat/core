@@ -46,13 +46,6 @@ class ChatServer {
       }
       return message
     })
-    this.middleware.push((message) => {
-      if (message.body.length > 255) {
-        message.sender.notify('Your message has been truncated. Try to keep your messages under ~250 characters.')
-      }
-      message.body = message.body.substring(0, 255)
-      return message
-    })
   }
 
   boot(port) {
