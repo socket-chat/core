@@ -41,6 +41,12 @@ class User {
   inRoom(roomName) {
     return this.roomList.has(roomName)
   }
+
+  notify(message) {
+    this.socket.emit('chat.event', {
+      message, timestamp: Date.now()
+    })
+  }
 }
 
 export { User }

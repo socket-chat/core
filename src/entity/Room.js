@@ -1,7 +1,10 @@
 import Immutable from 'immutable'
 
+const MAX_HISTORY = 3
+
 export const RoomTypes = {
-  PUBLIC: 'PUBLIC'
+  PUBLIC: 'PUBLIC',
+  PRIVATE: 'PRIVATE'
 }
 
 export class Room {
@@ -29,6 +32,25 @@ export class Room {
     this.users.forEach(u => u.socket.emit(event, data))
   }
 
+  canJoin(user) {
+    if (this._type === RoomTypes.PRIVATE) {
+      return this.name.split('-').slice(1).find(s => s === user.username.toLowerCase())
+    }
+    return this._type === RoomTypes.PUBLIC
+  }
+
+  prune() {
+    this.messages = new Immutable.List()
+    this.announce('chat.prune', { roomId: this.roomId })
+  }
+
+  scrollback(user) {
+    user.socket.emit('chat.room.scrollback', {
+      roomId: this.name,
+      messages: this.messages.map(m => m.encode())
+    })
+  }
+
   send(message) {
     let messageList = this.messages
 
@@ -37,6 +59,8 @@ export class Room {
     }
 
     this.messages = messageList.push(message)
+
+    this.announce('chat.message', message.encode())
   }
 
   notifyJoin(user) {
@@ -44,6 +68,7 @@ export class Room {
       users: this.userProfiles,
       roomId: this.name
     })
+    this.scrollback(user)
 
     this.announce('chat.user.joined', { roomId: this.name, user: user.profile })
   }

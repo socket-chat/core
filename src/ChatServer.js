@@ -1,6 +1,9 @@
 import * as _ from 'lodash'
 import { SocketAuthenticator } from './auth'
 import { Room, RoomTypes } from './entity/Room'
+import { Message } from './entity/Message'
+
+const debug = require('debug')('sc:chat')
 
 const DEFAULT_ROOM = 'lobby'
 
@@ -15,6 +18,7 @@ class ChatServer {
   constructor(store, sio) {
     this._sio = sio
     this._store = store
+    this.middleware = []
   }
 
   get rooms() {
@@ -29,12 +33,35 @@ class ChatServer {
     return this._store.state.chat.users
   }
 
+  _addIncomingMessageHandler(user, socket) {
+    socket.on('chat.message', ({ roomId, message } = {}) => {
+      this.routeMessage(new Message(user, message, roomId))
+    })
+  }
+
+  _registerMiddleware() {
+    this.middleware.push((message) => {
+      if (! this.rooms.has(message.roomId)) {
+        throw new Error('Room [' + message.roomId + '] does not exist!')
+      }
+      return message
+    })
+    this.middleware.push((message) => {
+      if (message.body.length > 255) {
+        message.sender.notify('Your message has been truncated. Try to keep your messages under ~250 characters.')
+      }
+      message.body = message.body.substring(0, 255)
+      return message
+    })
+  }
+
   boot(port) {
     const { actions } = this._store
     const authenticator = new SocketAuthenticator()
 
-    this.createRoom(DEFAULT_ROOM)
-    const lobby = this.rooms.get(DEFAULT_ROOM)
+    const lobby = this.createRoom(DEFAULT_ROOM)
+
+    this._registerMiddleware()
 
     this.sio.on('connection', authenticator.authorize({
       timeout: 10000
@@ -52,6 +79,8 @@ class ChatServer {
         }
       })
 
+      this._addIncomingMessageHandler(user, socket)
+
       user.socket = socket
 
       actions.addUser(user)
@@ -61,10 +90,34 @@ class ChatServer {
     this.sio.listen(port)
   }
 
-  createRoom(name, type = RoomTypes.PUBLIC) {
-    this._store.actions.addRoom(
-      new Room(this._store.state, name, type)
-    )
+  createRoom(name, type = RoomTypes.PUBLIC, users = []) {
+    const { actions } = this._store
+    const room = new Room(this._store.state, name, type)
+
+    actions.addRoom(room)
+
+    users.forEach(u => actions.joinRoom(room, u))
+
+    return room
+  }
+
+  getUserByUsername(username) {
+    const match = username.toLowerCase()
+    return this.users.find((value) => value.username.toLowerCase() === match)
+  }
+
+  routeMessage(msg) {
+    const { sender, roomId } = msg
+
+    try {
+      this.middleware.every(mw => !! msg && (msg = mw(msg)))
+    } catch (e) {
+      return sender.notify('Middleware Failed! ' + ('message' in e ? e.message : e))
+    }
+
+    if (!! msg) {
+      this.rooms.get(roomId).send(msg)
+    }
   }
 }
 
