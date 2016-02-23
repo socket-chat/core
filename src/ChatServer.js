@@ -64,8 +64,9 @@ class ChatServer {
       timeout: 10000
     })).on('authenticated', (socket, user) => {
       socket.on('disconnect', () => {
-        this.rooms.filter(r => user.inRoom(r.name))
-          .forEach(r => actions.leaveRoom(r, user))
+        user.roomList.forEach(r => {
+          actions.leaveRoom(this.rooms.get(r), user)
+        })
         actions.removeUser(user)
       })
 
