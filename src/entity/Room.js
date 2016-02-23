@@ -1,6 +1,6 @@
 import Immutable from 'immutable'
 
-const MAX_HISTORY = 3
+const MAX_HISTORY = 50
 
 export const RoomTypes = {
   PUBLIC: 'PUBLIC',
