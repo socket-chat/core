@@ -112,6 +112,14 @@ class ChatServer {
       this.rooms.get(roomId).send(msg)
     }
   }
+
+  use(extension) {
+    if ('default' in extension) {
+      extension.default(this)
+    } else {
+      extension(this)
+    }
+  }
 }
 
 export { ChatServer }
