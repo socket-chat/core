@@ -48,6 +48,10 @@ class ChatServer {
     })
   }
 
+  announce(event, message) {
+    this.users.forEach(u => u.socket.emit(event, message))
+  }
+
   boot(port) {
     const { actions } = this._store
     const authenticator = new SocketAuthenticator()
@@ -97,6 +101,10 @@ class ChatServer {
   getUserByUsername(username) {
     const match = username.toLowerCase()
     return this.users.find((value) => value.username.toLowerCase() === match)
+  }
+
+  notify(message) {
+    this.announce('chat.event', { message, timestamp: Date.now() })
   }
 
   routeMessage(msg) {
