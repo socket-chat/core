@@ -1,4 +1,5 @@
 import * as _ from 'lodash'
+import Immutable from 'immutable'
 import { SocketAuthenticator } from './auth'
 import { Room, RoomTypes } from './entity/Room'
 import { Message } from './entity/Message'
@@ -6,6 +7,21 @@ import { Message } from './entity/Message'
 const debug = require('debug')('sc:chat')
 
 const DEFAULT_ROOM = 'lobby'
+
+const runMiddleware = (middleware, message) => {
+  const next = (message) => {
+    if (middleware.size === 0) {
+      return Promise.resolve(message)
+    }
+
+    const mw = middleware.last()
+    middleware = middleware.pop()
+
+    return mw(message).then(next)
+  }
+
+  return next(message)
+}
 
 /**
  * Chat Server
@@ -19,6 +35,7 @@ class ChatServer {
     this._sio = sio
     this._store = store
     this.middleware = []
+    this._middlewareList = new Immutable.List()
   }
 
   get rooms() {
@@ -44,7 +61,7 @@ class ChatServer {
       if (! this.rooms.has(message.roomId)) {
         throw new Error('Room [' + message.roomId + '] does not exist!')
       }
-      return message
+      return Promise.resolve(message)
     })
   }
 
@@ -61,6 +78,8 @@ class ChatServer {
     }
 
     this._registerMiddleware()
+
+    this._middlewareList = new Immutable.List(this.middleware).reverse()
 
     this.sio.on('connection', authenticator.authorize({
       timeout: 10000
@@ -115,17 +134,9 @@ class ChatServer {
   }
 
   routeMessage(msg) {
-    const { sender, roomId } = msg
-
-    try {
-      this.middleware.every(mw => !! msg && (msg = mw(msg)))
-    } catch (e) {
-      return sender.notify('Middleware Failed! ' + ('message' in e ? e.message : e))
-    }
-
-    if (!! msg) {
-      this.rooms.get(roomId).send(msg)
-    }
+    runMiddleware(this._middlewareList, msg)
+      .then((message) => this.rooms.get(message.roomId).send(message))
+      .catch((err) => msg.sender.notify('Middleware Failed! ' + ('message' in err ? err.message : err)))
   }
 
   use(extension) {
