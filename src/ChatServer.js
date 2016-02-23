@@ -52,11 +52,13 @@ class ChatServer {
     this.users.forEach(u => u.socket.emit(event, message))
   }
 
-  boot(port) {
+  boot(port, connHandler, authenticator = null) {
     const { actions } = this._store
-    const authenticator = new SocketAuthenticator()
-
     const lobby = this.createRoom(DEFAULT_ROOM)
+
+    if (! authenticator) {
+      authenticator = new SocketAuthenticator()
+    }
 
     this._registerMiddleware()
 
@@ -78,6 +80,10 @@ class ChatServer {
       })
 
       this._addIncomingMessageHandler(user, socket)
+
+      if (connHandler) {
+        connHandler(socket)
+      }
 
       user.socket = socket
 
