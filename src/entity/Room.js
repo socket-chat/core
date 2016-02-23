@@ -41,7 +41,7 @@ export class Room {
 
   prune() {
     this.messages = new Immutable.List()
-    this.announce('chat.prune', { roomId: this.roomId })
+    this.announce('chat.prune', { roomId: this.name })
   }
 
   scrollback(user) {
