@@ -8,19 +8,14 @@ const debug = require('debug')('sc:chat')
 
 const DEFAULT_ROOM = 'lobby'
 
-const runMiddleware = (middleware, message) => {
-  const next = (message) => {
-    if (middleware.size === 0) {
-      return Promise.resolve(message)
-    }
-
-    const mw = middleware.last()
-    middleware = middleware.pop()
-
-    return mw(message).then(next)
+const executePromiseChain = (stack, context) => {
+  if (stack.size === 0) {
+    return Promise.resolve(context)
   }
 
-  return next(message)
+  const method = stack.last()
+  return method(context)
+    .then((ctx) => executePromiseChain(stack.pop(), ctx))
 }
 
 /**
@@ -134,7 +129,7 @@ class ChatServer {
   }
 
   routeMessage(msg) {
-    runMiddleware(this._middlewareList, msg)
+    executePromiseChain(this._middlewareList, msg)
       .then((message) => this.rooms.get(message.roomId).send(message))
       .catch((err) => msg.sender.notify('Middleware Failed! ' + ('message' in err ? err.message : err)))
   }
