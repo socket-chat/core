@@ -95,9 +95,9 @@ class SocketAuthenticator {
       debug('new conn: ' + socket.id)
       socket.connectedAt = Date.now()
 
-      const Namespace = Object.getPrototypeOf(server.sockets).constructor;
+      const Namespace = Object.getPrototypeOf(server.sockets).constructor
       if (! Namespace.events.includes('authenticated')) {
-        Namespace.events.push('authenticated');
+        Namespace.events.push('authenticated')
       }
 
       if (opts.timeout > 0) {
