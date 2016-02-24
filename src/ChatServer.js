@@ -131,7 +131,7 @@ class ChatServer {
   routeMessage(msg) {
     executePromiseChain(this._middlewareList, msg)
       .then((message) => this.rooms.get(message.roomId).send(message))
-      .catch((err) => msg.sender.notify('Middleware Failed! ' + ('message' in err ? err.message : err)))
+      .catch((err) => msg.sender.notify(('message' in err) ? err.message : err))
   }
 
   use(extension) {
