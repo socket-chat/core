@@ -13,7 +13,7 @@ const executePromiseChain = (stack, context) => {
     return Promise.resolve(context)
   }
 
-  const method = stack.last()
+  const method = stack.peek()
   return method(context)
     .then((ctx) => executePromiseChain(stack.pop(), ctx))
 }
@@ -30,7 +30,7 @@ class ChatServer {
     this._sio = sio
     this._store = store
     this.middleware = []
-    this._middlewareList = new Immutable.List()
+    this._middlewareList = new Immutable.Stack()
   }
 
   get rooms() {
@@ -74,7 +74,7 @@ class ChatServer {
 
     this._registerMiddleware()
 
-    this._middlewareList = new Immutable.List(this.middleware).reverse()
+    this._middlewareList = new Immutable.Stack(this.middleware)
 
     this.sio.on('connection', authenticator.authorize({
       timeout: 10000
