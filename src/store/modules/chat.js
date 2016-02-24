@@ -33,11 +33,11 @@ export const chatMutations = {
     user.roomList = user.roomList.delete(room.name)
   },
 
-  [USER_ADD] ({ server, chat }, user) {
+  [USER_ADD] ({ chat }, user) {
     chat.users = chat.users.set(user.uid, user)
   },
 
-  [USER_REMOVE] ({ server, chat }, user) {
+  [USER_REMOVE] ({ chat }, user) {
     chat.users = chat.users.delete(user.uid)
   }
 }
