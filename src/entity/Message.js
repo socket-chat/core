@@ -1,3 +1,8 @@
+const crypto = require('crypto')
+
+const md5 = (data) => crypto.createHash('md5').update(data).digest('hex')
+
+
 /**
  * A message sent by a user.
  */
@@ -12,10 +17,12 @@ class Message {
     this.sent = false
     this.roomId = roomId
     this.sentAt = Date.now()
+    this.id = md5(this.roomId + this.body + this.sentAt)
   }
 
   encode() {
     return {
+      msgId: this.id,
       message: this.body,
       roomId: this.roomId,
       timestamp: this.sentAt,
