@@ -68,6 +68,9 @@ class ChatServer {
     const { actions } = this._store
     const lobby = this.createRoom(DEFAULT_ROOM)
 
+    // if no connection handler is provided, allow the connection by default
+    connHandler = connHandler || ((socket) => Promise.resolve(true))
+
     if (! authenticator) {
       authenticator = new SocketAuthenticator()
     }
@@ -79,30 +82,30 @@ class ChatServer {
     this.sio.on('connection', authenticator.authorize({
       timeout: 10000
     })).on('authenticated', (socket, user) => {
-      socket.on('disconnect', () => {
-        user.roomList.forEach(r => {
-          actions.leaveRoom(this.rooms.get(r), user)
+      connHandler(socket)
+        .then(() => {
+          socket.on('disconnect', () => {
+            user.roomList.forEach(r => {
+              actions.leaveRoom(this.rooms.get(r), user)
+            })
+            actions.removeUser(user)
+          })
+
+          // re-add the socket to namespaces
+          _.each(this.sio.nsps, (nsp) => {
+            if (_.find(nsp.sockets, { id: socket.id })) {
+              nsp.connected[socket.id] = socket
+            }
+          })
+
+          this._addIncomingMessageHandler(user, socket)
+
+          user.socket = socket
+
+          actions.addUser(user)
+          actions.joinRoom(lobby, user)
         })
-        actions.removeUser(user)
-      })
-
-      // re-add the socket to namespaces
-      _.each(this.sio.nsps, (nsp) => {
-        if (_.find(nsp.sockets, { id: socket.id })) {
-          nsp.connected[socket.id] = socket
-        }
-      })
-
-      this._addIncomingMessageHandler(user, socket)
-
-      if (connHandler) {
-        connHandler(socket)
-      }
-
-      user.socket = socket
-
-      actions.addUser(user)
-      actions.joinRoom(lobby, user)
+        .catch((err) => socket.disconnect(err))
     })
 
     this.sio.listen(port)
