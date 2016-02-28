@@ -43,6 +43,10 @@ class User {
   }
 
   notify(message) {
+    if (! this.socket) {
+      return
+    }
+
     this.socket.emit('chat.event', {
       message, timestamp: Date.now()
     })

@@ -29,7 +29,9 @@ export class Room {
   }
 
   announce(event, data) {
-    this.users.forEach(u => u.socket.emit(event, data))
+    this.users
+      .filter(u => u && u.socket)
+      .forEach(u => u.socket.emit(event, data))
   }
 
   canJoin(user) {
@@ -45,6 +47,10 @@ export class Room {
   }
 
   scrollback(user) {
+    if (! user || ! user.socket) {
+      return
+    }
+
     user.socket.emit('chat.room.scrollback', {
       roomId: this.name,
       messages: this.messages.map(m => m.encode())
@@ -64,6 +70,10 @@ export class Room {
   }
 
   notifyJoin(user) {
+    if (! user || ! user.socket) {
+      return
+    }
+
     user.socket.emit('chat.room.joined', {
       users: this.userProfiles,
       roomId: this.name
