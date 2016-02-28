@@ -87,8 +87,8 @@ class SocketAuthenticator {
     return (socket) => {
       const server = socket.server
 
-      const failAuth = () => {
-        socket.emit('auth.failure')
+      const failAuth = (err) => {
+        socket.emit('auth.failure', err)
         socket.disconnect('unauthorized')
       }
 
@@ -115,7 +115,7 @@ class SocketAuthenticator {
         })
         .catch((err) => {
           debug(err)
-          failAuth()
+          failAuth(err)
         })
 
     }
